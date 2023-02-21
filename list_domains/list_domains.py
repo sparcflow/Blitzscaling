@@ -7,6 +7,8 @@ coloredlogs.install(level="INFO")
 
 def list_records(client, zone_id, is_private):
     zone_type = "private" if is_private else "public"
+
+    # use paginator to automatically loop over all objects return by the api
     paginator = client.get_paginator("list_resource_record_sets")
 
     try:
