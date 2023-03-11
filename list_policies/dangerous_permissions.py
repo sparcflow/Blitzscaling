@@ -13,11 +13,11 @@ read_actions = [":get", ":describe", ":decrypt"]
 read_sensitive_services = ["secretsmanager:", "ssm:", "kms:"]
 write_sensitive_services = ["iam:", "secretsmanager:", "ssm:", "kms:", "dynamodb:", "rds:", "eks:", "lambda:"]
 
-admin_policy_names = ["FullAccess", "admin"]
+admin_policy_names = ["fullaccess", "admin"]
 
 
 def check_dangerous_permission(action, resource, policy_name):
-    action, resource = action.lower(), resource.lower()
+    action, resource, policy_name = action.lower(), resource.lower(), policy_name.lower()
 
     # default policies
     if any(key in policy_name for key in admin_policy_names):
