@@ -16,7 +16,7 @@ var (
 	indexPrefix    = os.Getenv("cloudtrail")
 	elasticHeaders = map[string]string{
 		"Content-Type":  "application/json",
-		"Authorization": fmt.Sprintf("ApiKey %s", getSecret(os.Getenv("ES_API_KEY"))),
+		"Authorization": fmt.Sprintf("ApiKey %s", getSecret(os.Getenv("ELASTIC_TOKEN"))),
 	}
 )
 
