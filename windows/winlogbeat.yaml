@@ -1,0 +1,97 @@
+winlogbeat.event_logs:
+  - name: Security
+    processors:
+      - drop_event.when.not.or:
+        - equals.winlog.event_id: 4720 # User was created
+        - equals.winlog.event_id: 4722 # User was enabled
+        - equals.winlog.event_id: 4724 # Reset password account
+        - equals.winlog.event_id: 4738 # User account was changed
+        - equals.winlog.event_id: 4740 # User account was locked
+        - equals.winlog.event_id: 4767 # User account was unlocked
+        - equals.winlog.event_id: 4723 # password change on an account
+        - equals.winlog.event_id: 1102 # Audit log was cleared
+        - equals.winlog.event_id: 4624 # Successful login
+        - equals.winlog.event_id: 4625 # Failed login
+        - equals.winlog.event_id: 4732 # Member added to security group
+        - equals.winlog.event_id: 4735 # Security group was changed
+        - equals.winlog.event_id: 4697 # Service was installed on the system
+        - equals.winlog.event_id: 4698 # Scheduled task was created
+        - equals.winlog.event_id: 4741 # Computer account was created
+        - equals.winlog.event_id: 4674 # privileged access
+      - script:
+          lang: javascript
+          id: security
+          file: ${path.home}/module/security/config/winlogbeat-security.js
+
+  - name: Microsoft-Windows-Sysmon/Operational
+    processors:
+      - script:
+          lang: javascript
+          id: sysmon
+          file: ${path.home}/module/sysmon/config/winlogbeat-sysmon.js
+
+  - name: Microsoft-Windows-PowerShell/Operational
+    processors:
+      - script:
+          lang: javascript
+          id: powershell
+          file: ${path.home}/module/powershell/config/winlogbeat-powershell.js
+
+  - name: Microsoft-Windows-Windows Defender/Operational
+  - name: Microsoft-Windows-AppLocker/EXE and DLL
+  - name: Microsoft-Windows-AppLocker/MSI and Script
+
+  - name: ForwardedEvents
+    tags: [forwarded]
+    processors:
+      - script:
+          when.equals.winlog.channel: Security
+          lang: javascript
+          id: security
+          file: ${path.home}/module/security/config/winlogbeat-security.js
+      - script:
+          when.equals.winlog.channel: Microsoft-Windows-Sysmon/Operational
+          lang: javascript
+          id: sysmon
+          file: ${path.home}/module/sysmon/config/winlogbeat-sysmon.js
+      - script:
+          when.equals.winlog.channel: Windows PowerShell
+          lang: javascript
+          id: powershell
+          file: ${path.home}/module/powershell/config/winlogbeat-powershell.js
+      - script:
+          when.equals.winlog.channel: Microsoft-Windows-PowerShell/Operational
+          lang: javascript
+          id: powershell
+          file: ${path.home}/module/powershell/config/winlogbeat-powershell.js
+
+# ====================== Elasticsearch template settings =======================
+
+setup.template.settings:
+  index.number_of_shards: 1
+  #index.codec: best_compression
+  #_source.enabled: false
+
+# =================================== Kibana ===================================
+
+# Starting with Beats version 6.0.0, the dashboards are loaded via the Kibana API.
+# This requires a Kibana endpoint configuration.
+setup.kibana:
+
+# You can find the `cloud.id` in the Elastic Cloud web UI.
+cloud.id: # to fill
+
+# The cloud.auth setting overwrites the `output.elasticsearch.username` and
+# `output.elasticsearch.password` settings. The format is `<user>:<pass>`.
+cloud.auth: # to fill
+
+# ================================== Outputs ===================================
+
+# Configure what output to use when sending the data collected by the beat.
+
+
+# ================================= Processors =================================
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_cloud_metadata: ~
