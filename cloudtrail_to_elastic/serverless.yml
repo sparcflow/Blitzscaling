@@ -1,0 +1,43 @@
+service: lambda
+frameworkVersion: '>=1.28.0'
+
+package:
+  individually: true
+  exclude:
+    - '**'
+provider:
+  name: aws
+  runtime: go1.x
+  stage: 'prod'
+  region: eu-west-1
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+      Resource:
+        - 'arn:aws:ssm:eu-west-1:*:parameter/siem/*'
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+      Resource:
+        - 'arn:aws:s3:::mxrads-cloudtrail-logs/*' # change to your cloudtrail S3 bucket
+
+functions:
+  - cloudtrail-elastic:
+      handler: bin/cloudtrail-elastic_linux_amd64
+      tags:
+          Project: cloudtrail-elastic
+      timeout: 300
+      memorySize: 256
+      package:
+        include:
+          - bin/cloudtrail-elastic_linux_amd64
+      environment:
+        ELASTIC_HOST: http://192.168.1.38:9200 # change to a real elastic endpoint
+        ELASTIC_TOKEN: /siem/elastic/apikey # define this secret in SSM parameter store
+        ELASTIC_INDEX: cloudtrail
+      events:
+        - s3:
+            bucket: mxrads-cloudtrail-logs # change to your cloudtrail S3 bucket
+            event: s3:ObjectCreated:*
+            existing: true

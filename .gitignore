@@ -2,3 +2,5 @@ __pycache__
 *.csv
 *.txt
 *.pyc
+bin/*
+.serverless
